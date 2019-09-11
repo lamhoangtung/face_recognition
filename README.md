@@ -386,6 +386,12 @@ You can try the Docker image locally by running: `docker-compose up --build`
 
 Linux users with a GPU (drivers >= 384.81) and [Nvidia-Docker](https://github.com/NVIDIA/nvidia-docker) installed can run the example on the GPU: Open the [docker-compose.yml](docker-compose.yml) file and uncomment the `dockerfile: Dockerfile.gpu` and `runtime: nvidia` lines.
 
+My build and serve:
+```bash
+docker build -t face_recognition:latest .
+docker run -p 8082:8082 -it face_recognition:latest
+```
+
 ## Having problems?
 
 If you run into problems, please read the [Common Errors](https://github.com/ageitgey/face_recognition/wiki/Common-Errors) section of the wiki before filing a github issue.
