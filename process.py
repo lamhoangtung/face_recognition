@@ -3,6 +3,7 @@ import io
 import json
 
 import cv2
+import imagehash
 import numpy as np
 import requests
 from PIL import Image
@@ -37,6 +38,12 @@ def get_profile_image_from_layout(id_img):
     return list_face
 
 
+def is_same_image(image1, image2):
+    hash1 = imagehash.whash(Image.fromarray(image1))
+    hash2 = imagehash.whash(Image.fromarray(image2))
+    return abs(hash1-hash2) <= 9
+
+
 def error(message):
     return {
         'success': False,
@@ -56,21 +63,25 @@ def process(id_img, selfie_img):
         return error("Can't find any face in the ID. Please take a new picture of your ID")
     elif len(list_id_face) > 1:
         return error("Multiple faces have been found. Please take a new picture of only your ID")
-
-    # Check number of face in selfie images
-    list_selfie_face = face_recognition.api.face_locations(selfie_img)
-    if not list_selfie_face:
-        return error("Can't find any face in your selfie. Please take a new picture of you")
-    elif len(list_selfie_face) > 1:
-        return error("Multiple faces have been found. Please take a new picture of only you")
+    id_img = list_id_face[0]
 
     # Check hash if they are the same picture
-    if list_id_face[0] == list_selfie_face[0]:
+    if is_same_image(id_img, selfie_img):
         return error('Found the same images. Please take new picture of you and your id')
 
+    # Check number of face in selfie images
+    selfie_face_loc = face_recognition.api.face_locations(selfie_img, number_of_times_to_upsample=2, model='cnn')
+    if not selfie_face_loc:
+        return error("Can't find any face in your selfie. Please take a new picture of you")
+    elif len(selfie_face_loc) > 1:
+        return error("Multiple faces have been found. Please take a new picture of only you")
+    id_face_loc = face_recognition.api.face_locations(id_img, number_of_times_to_upsample=2, model='cnn')
+    if not id_face_loc:
+        return error("Can't find any face in the ID. Please take a new picture of your ID")
+
     # Compare distance
-    face1_encoding = face_recognition.face_encodings(list_id_face[0])[0]
-    face2_encoding = face_recognition.face_encodings(list_selfie_face[0])[0]
+    face1_encoding = face_recognition.face_encodings(id_img, known_face_locations=id_face_loc)[0]
+    face2_encoding = face_recognition.face_encodings(selfie_img, known_face_locations=selfie_face_loc)[0]
     face_distance = face_recognition.face_distance([face1_encoding], face2_encoding)[0]
     return {
         'distance': face_distance,
