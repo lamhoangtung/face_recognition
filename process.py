@@ -32,10 +32,11 @@ def get_profile_image_from_layout(id_img):
     response = requests.post(layout_api_address, data=img_encoded.tostring(),
                              headers=headers)
     response = json.loads(response.text)
-    list_face = []
-    for each in response['prediction']:
-        list_face.append(read_image_base64(each['cropped']))
-    return list_face
+    if len(response['prediction']==0):
+        return None
+    else:
+        most_conf = max(response['prediction'], key=lambda x: x['confidence'])
+        return read_image_base64(most_conf['cropped'])
 
 
 def is_same_image(image1, image2):
@@ -58,12 +59,9 @@ def process(id_img, selfie_img):
         selfie_img = imread_buffer(selfie_img)
 
     # Call drake's API to get the cropped profile_image
-    list_id_face = get_profile_image_from_layout(id_img)
-    if not list_id_face:
+    id_img = get_profile_image_from_layout(id_img)
+    if id_img is None:
         return error("Can't find any face in the ID. Please take a new picture of your ID")
-    elif len(list_id_face) > 1:
-        return error("Multiple faces have been found. Please take a new picture of only your ID")
-    id_img = list_id_face[0]
 
     # Check hash if they are the same picture
     if is_same_image(id_img, selfie_img):
@@ -78,6 +76,9 @@ def process(id_img, selfie_img):
     id_face_loc = face_recognition.api.face_locations(id_img, number_of_times_to_upsample=2, model='cnn')
     if not id_face_loc:
         return error("Can't find any face in the ID. Please take a new picture of your ID")
+    elif len(id_face_loc) > 1:
+        return error("Multiple faces have been found. Please take a new picture of only your ID")
+
 
     # Compare distance
     face1_encoding = face_recognition.face_encodings(id_img, known_face_locations=id_face_loc)[0]
