@@ -38,3 +38,6 @@ RUN cd /root/face_recognition && \
     python3 setup.py install
 WORKDIR /root/face_recognition
 CMD ["gunicorn", "--bind", "0.0.0.0:8082", "wsgi:app", "--timeout", "100", "--graceful-timeout", "50", "--max-requests-jitter", "2000", "--max-requests", "50", "-w", "2", "--keep-alive", "2"]
+
+
+gunicorn --bind 0.0.0.0:8082 wsgi:app --timeout 100 --graceful-timeout 50 --max-requests-jitter 2000 --max-requests 50 -w 2 --keep-alive 2

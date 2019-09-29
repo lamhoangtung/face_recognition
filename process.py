@@ -20,7 +20,8 @@ def imread_buffer(buffer_):
 
 def read_image_base64(base64string):
     image = Image.open(io.BytesIO(base64.b64decode(base64string)))
-    image.save('./test.jpg')
+    image = np.array(image)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     return image
 
 
@@ -32,7 +33,7 @@ def get_profile_image_from_layout(id_img):
     response = requests.post(layout_api_address, data=img_encoded.tostring(),
                              headers=headers)
     response = json.loads(response.text)
-    if len(response['prediction']==0):
+    if len(response['prediction']) == 0:
         return None
     else:
         most_conf = max(response['prediction'], key=lambda x: x['confidence'])
