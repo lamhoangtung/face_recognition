@@ -1,4 +1,5 @@
 import os
+import traceback
 
 import cv2
 import numpy as np
@@ -6,6 +7,7 @@ from flask import (Flask, Markup, jsonify, redirect, render_template, request,
                    url_for)
 from json2html import json2html
 from waitress import serve
+
 from process import process
 
 app = Flask(__name__)
@@ -37,7 +39,7 @@ def api_predict():
             result = process(image1, image2)
         except Exception as ex:
             result = {'error': str(ex)}
-            print(ex)
+            print(traceback.print_exc())
     elif request.data is not None and isinstance(request.data, list):
         try:
             image1 = cv2.imdecode(np.fromstring(request.data[0], np.uint8),
@@ -49,11 +51,11 @@ def api_predict():
             result = process(image1, image2)
         except Exception as ex:
             result = {'error': str(ex)}
-            print(ex)
+            print(traceback.print_exc())
     else:
         ex = 'Please post request.data as list of 2 encoded image as string.'
         result = {'error': ex}
-        print(ex)
+        print(traceback.print_exc())
     print(result)
     # return the data dictionary as a JSON response
     return jsonify(result)
