@@ -44,7 +44,7 @@ def get_profile_image_from_layout(id_img):
 def is_same_image(image1, image2):
     hash1 = imagehash.whash(Image.fromarray(image1))
     hash2 = imagehash.whash(Image.fromarray(image2))
-    return abs(hash1-hash2) <= 9
+    return abs(hash1-hash2) <= 15
 
 
 def error(message):
