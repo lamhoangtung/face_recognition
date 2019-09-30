@@ -1,14 +1,15 @@
 import base64
 import io
 import json
+import time
 
 import cv2
-import imagehash
 import numpy as np
 import requests
 from PIL import Image
 
 import face_recognition
+import imagehash
 
 
 def imread_buffer(buffer_):
@@ -47,6 +48,7 @@ def is_same_image(image1, image2):
 
 
 def error(message):
+    print('--------------------------------------------------------------------------')
     return {
         'success': False,
         'message': message
@@ -54,37 +56,58 @@ def error(message):
 
 
 def process(id_img, selfie_img):
+    start_time = time.time()
+    print('Start processing ...')
     if isinstance(id_img, bytes):
         id_img = imread_buffer(id_img)
     if isinstance(selfie_img, bytes):
         selfie_img = imread_buffer(selfie_img)
 
     # Call drake's API to get the cropped profile_image
+    print('1. Calling profile image crop API ...')
     id_img = get_profile_image_from_layout(id_img)
     if id_img is None:
         return error("Can't find any face in the ID. Please take a new picture of your ID")
+    print('-> Done. Tooks {} secs'.format(time.time()-start_time))
 
     # Check hash if they are the same picture
+    start_time = time.time()
+    print('2. Checking duplicate image ...')
     if is_same_image(id_img, selfie_img):
         return error('Found the same images. Please take new picture of you and your id')
+    print('-> Done. Tooks {} secs'.format(time.time()-start_time))
 
     # Check number of face in selfie images
-    selfie_face_loc = face_recognition.api.face_locations(selfie_img, number_of_times_to_upsample=2, model='cnn')
+    start_time = time.time()
+    print('3. Cropping face from ID image ...')
+    selfie_face_loc = face_recognition.api.face_locations(selfie_img, number_of_times_to_upsample=1)  # , model='cnn')
     if not selfie_face_loc:
         return error("Can't find any face in your selfie. Please take a new picture of you")
     elif len(selfie_face_loc) > 1:
         return error("Multiple faces have been found. Please take a new picture of only you")
-    id_face_loc = face_recognition.api.face_locations(id_img, number_of_times_to_upsample=2, model='cnn')
+    print('-> Done. Tooks {} secs'.format(time.time()-start_time))
+
+    start_time = time.time()
+    print('4. Cropping face from selfie image ...')
+    id_face_loc = face_recognition.api.face_locations(id_img, number_of_times_to_upsample=1)  # , model='cnn')
     if not id_face_loc:
         return error("Can't find any face in the ID. Please take a new picture of your ID")
     elif len(id_face_loc) > 1:
         return error("Multiple faces have been found. Please take a new picture of only your ID")
-
+    print('-> Done. Tooks {} secs'.format(time.time()-start_time))
 
     # Compare distance
+    start_time = time.time()
+    print('5. Dewarp and calculating face embedding ...')
     face1_encoding = face_recognition.face_encodings(id_img, known_face_locations=id_face_loc)[0]
     face2_encoding = face_recognition.face_encodings(selfie_img, known_face_locations=selfie_face_loc)[0]
+    print('-> Done. Tooks {} secs'.format(time.time()-start_time))
+
+    start_time = time.time()
+    print('6. Getting face distance ...')
     face_distance = face_recognition.face_distance([face1_encoding], face2_encoding)[0]
+    print('-> Done. Tooks {} secs'.format(time.time()-start_time))
+    print('--------------------------------------------------------------------------')
     return {
         'distance': face_distance,
         'matched': 'True' if face_distance < 0.6 else 'False',

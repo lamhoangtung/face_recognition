@@ -1,4 +1,5 @@
 import os
+import time
 import traceback
 
 import cv2
@@ -31,6 +32,7 @@ def web_predict():
 
 @app.route('/api/predict', methods=['POST'])
 def api_predict():
+    start_time = time.time()
     image1 = request.files.get('image1')
     image2 = request.files.get('image2')
     if image1 and image2:
@@ -56,6 +58,7 @@ def api_predict():
         ex = 'Please post request.data as list of 2 encoded image as string.'
         result = {'error': ex}
         print(traceback.print_exc())
+    result['run_time'] = time.time()-start_time;
     print(result)
     # return the data dictionary as a JSON response
     return jsonify(result)
