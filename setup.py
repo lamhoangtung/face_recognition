@@ -15,7 +15,8 @@ requirements = [
     'dlib>=19.7',
     'numpy',
     'Pillow',
-    'ImageHash'
+    'ImageHash',
+    'imutils'
 ]
 
 test_requirements = [

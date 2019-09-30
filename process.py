@@ -10,7 +10,7 @@ from PIL import Image
 
 import face_recognition
 import imagehash
-
+import imutils
 
 def imread_buffer(buffer_):
     image = np.frombuffer(buffer_, dtype='uint8')
@@ -80,7 +80,15 @@ def process(id_img, selfie_img):
     # Check number of face in selfie images
     start_time = time.time()
     print('3. Cropping face from ID image ...')
-    selfie_face_loc = face_recognition.api.face_locations(selfie_img, number_of_times_to_upsample=1)  # , model='cnn')
+    for angle in [0, 90, 270, 360]:
+        print('- Trying angle:', angle)
+        rotated_selfie = imutils.rotate(selfie_img, angle = angle)
+        selfie_face_loc = face_recognition.api.face_locations(rotated_selfie, number_of_times_to_upsample=1)  # , model='cnn')
+        if len(selfie_face_loc) == 1:
+            print('-> Found it!')
+            selfie_img = rotated_selfie
+            break
+
     if not selfie_face_loc:
         return error("Can't find any face in your selfie. Please take a new picture of you")
     elif len(selfie_face_loc) > 1:
