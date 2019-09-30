@@ -2,9 +2,9 @@
 Face verification system between image in documents and selfie images
 
 ## How to run
-- Build your own docker images : `docker build -t face_recognition:latest .`
-- Or pull it from DockerHub: `docker pull lamhoangtung/face_recognition`
-- Then run it with: `docker run -p 8082:8082 -it face_recognition:latest`
+- Build your own docker images : `docker build -t face_verification:latest .`
+- Or pull it from DockerHub: `docker pull lamhoangtung/face_verification`
+- Then run it with: `docker run -p 8082:8082 -it face_verification:latest`
 
 ## How to use
 - An API will be launched serve at `http://0.0.0.0:8082/api/predict`
