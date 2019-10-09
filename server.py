@@ -49,7 +49,7 @@ def api_predict():
             image1 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
             image2 = cv2.imdecode(np.fromstring(request.data[1], np.uint8),
                                   cv2.IMREAD_COLOR)
-            image2 = cv2.cvtColor(image1, cv2.COLOR_BGR2RGB)
+            image2 = cv2.cvtColor(image2, cv2.COLOR_BGR2RGB)
             result = process(image1, image2)
         except Exception as ex:
             result = {'error': str(ex)}
