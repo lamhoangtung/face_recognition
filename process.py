@@ -37,7 +37,7 @@ def get_profile_image_from_layout(id_img):
     try:
         response = json.loads(response.text)
     except:
-        error('Crop profile images API failed with this respond: {}'.format(response.text))
+        return error('Crop profile images API failed with this respond: {}'.format(response.text))
     if len(response['prediction']) == 0:
         return None
     else:
