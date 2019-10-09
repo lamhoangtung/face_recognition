@@ -34,7 +34,10 @@ def get_profile_image_from_layout(id_img):
     _, img_encoded = cv2.imencode('.jpg', id_img)
     response = requests.post(layout_api_address, data=img_encoded.tostring(),
                              headers=headers)
-    response = json.loads(response.text)
+    try:
+        response = json.loads(response.text)
+    except:
+        error('Crop profile images API failed with this respond: {}'.format(response.text))
     if len(response['prediction']) == 0:
         return None
     else:
