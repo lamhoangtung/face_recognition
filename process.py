@@ -4,13 +4,14 @@ import json
 import time
 
 import cv2
+import imutils
 import numpy as np
 import requests
 from PIL import Image
 
 import face_recognition
 import imagehash
-import imutils
+
 
 def imread_buffer(buffer_):
     image = np.frombuffer(buffer_, dtype='uint8')
@@ -47,6 +48,10 @@ def is_same_image(image1, image2):
     return abs(hash1-hash2) <= 15
 
 
+def get_the_biggest_face(face_loc):
+    return [max(face_loc, key=lambda x:abs(x[2]-x[0])*abs(x[3]-x[1]))]
+
+
 def error(message):
     print('--------------------------------------------------------------------------')
     return {
@@ -79,11 +84,14 @@ def process(id_img, selfie_img):
 
     # Check number of face in selfie images
     start_time = time.time()
-    print('3. Cropping face from ID image ...')
+    print('3. Cropping face from selfie image ...')
     for angle in [0, 90, 270, 360]:
         print('- Trying angle:', angle)
-        rotated_selfie = imutils.rotate(selfie_img, angle = angle)
+        rotated_selfie = imutils.rotate(selfie_img, angle=angle)
         selfie_face_loc = face_recognition.api.face_locations(rotated_selfie, number_of_times_to_upsample=1)  # , model='cnn')
+        if len(selfie_face_loc) > 1:
+            print('- Multiple faces have been found. Selecting the biggest ones')
+            selfie_face_loc = get_the_biggest_face(selfie_face_loc)
         if len(selfie_face_loc) == 1:
             print('-> Found it!')
             selfie_img = rotated_selfie
@@ -91,17 +99,16 @@ def process(id_img, selfie_img):
 
     if not selfie_face_loc:
         return error("Can't find any face in your selfie. Please take a new picture of you")
-    elif len(selfie_face_loc) > 1:
-        return error("Multiple faces have been found. Please take a new picture of only you")
     print('-> Done. Tooks {} secs'.format(time.time()-start_time))
 
     start_time = time.time()
-    print('4. Cropping face from selfie image ...')
+    print('4. Cropping face from ID image ...')
     id_face_loc = face_recognition.api.face_locations(id_img, number_of_times_to_upsample=1)  # , model='cnn')
     if not id_face_loc:
         return error("Can't find any face in the ID. Please take a new picture of your ID")
     elif len(id_face_loc) > 1:
-        return error("Multiple faces have been found. Please take a new picture of only your ID")
+        print('- Multiple faces have been found. Selecting the biggest ones')
+        id_face_loc = get_the_biggest_face(id_face_loc)
     print('-> Done. Tooks {} secs'.format(time.time()-start_time))
 
     # Compare distance
